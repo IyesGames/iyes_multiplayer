@@ -1,0 +1,9 @@
+[workspace]
+resolver = "2"
+members = [
+    "iyes_multiplayer_authsrv",
+    "iyes_multiplayer_hostsrv",
+    "iyes_multiplayer_client",
+    "iyesmpcli",
+    "examples/*/*",
+]
