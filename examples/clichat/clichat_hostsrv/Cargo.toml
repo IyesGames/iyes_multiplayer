@@ -3,7 +3,22 @@ name = "clichat_hostsrv"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+anyhow = "1.0.71"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies.iyes_multiplayer_hostsrv]
 path = "../../../iyes_multiplayer_hostsrv"
+
+[dependencies.tokio]
+version = "1.28.0"
+features = ["full"]
+
+[dependencies.tracing-subscriber]
+version = "0.3.17"
+features = ["env-filter"]
+
+[dependencies.tracing]
+version = "0.1.37"
+features = ["async-await"]

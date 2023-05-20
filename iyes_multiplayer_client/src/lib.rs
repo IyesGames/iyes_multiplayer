@@ -1,14 +1,20 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use thiserror::Error;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod client;
+pub mod config;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub mod auth;
+
+#[derive(Error, Debug)]
+pub enum ClientError {
+    #[error("bad certificate")]
+    Certificate(webpki::Error),
+    #[error("could not configure client TLS cryptography")]
+    ClientCrypto(rustls::Error),
+    #[error("could not set up QUIC endpoint")]
+    Endpoint(std::io::Error),
+    #[error("cannot attempt to connect to server")]
+    Connect(#[from] quinn::ConnectError),
+    #[error("connection failed")]
+    Connection(#[from] quinn::ConnectionError),
 }

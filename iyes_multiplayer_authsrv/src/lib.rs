@@ -1,14 +1,17 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use thiserror::Error;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod config;
+pub mod server;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+mod client;
+mod host;
+
+#[derive(Error, Debug)]
+pub enum AuthServerError {
+    #[error("bad certificate")]
+    Certificate(webpki::Error),
+    #[error("could not configure server TLS cryptography")]
+    ServerCrypto(rustls::Error),
+    #[error("could not set up QUIC endpoint")]
+    Endpoint(std::io::Error),
 }
