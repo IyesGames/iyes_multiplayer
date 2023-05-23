@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+pub mod account;
 pub mod config;
 pub mod server;
 

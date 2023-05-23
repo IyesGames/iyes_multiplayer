@@ -10,6 +10,10 @@ anyhow = "1.0.71"
 
 [dependencies.iyes_multiplayer_client]
 path = "../../../iyes_multiplayer_client"
+[dependencies.iyes_multiplayer_proto_clientauth]
+path = "../../../proto/clientauth"
+[dependencies.clichat_proto]
+path = "../clichat_proto"
 
 [dependencies.tokio]
 version = "1.28.0"

@@ -30,13 +30,13 @@ pub(crate) async fn listen_hosts(endpoint: Endpoint) -> Result<(), AuthServerErr
             Ok(conn) => {
                 tokio::spawn(async move {
                     if let Err(e) = host_connection(conn).await {
-                        error!("Host Server session error: {:#}", e);
+                        error!("Host Server session error: {}", e);
                     }
                 });
             }
             Err(e) => {
                 error!(
-                    "Host Server connection from {} failed: {:#}",
+                    "Host Server connection from {} failed: {}",
                     remote_addr, e
                 );
             }

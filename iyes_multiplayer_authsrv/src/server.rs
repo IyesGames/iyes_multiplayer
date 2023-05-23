@@ -1,16 +1,48 @@
 use std::{net::ToSocketAddrs, sync::Arc};
 
+use iyes_multiplayer_proto_clientauth::{handshake::{AccountData, GameExtras, GameExtrasError, AccountDataError}};
 use rustls::{server::AllowAnyAuthenticatedClient, RootCertStore, ServerConfig};
+use tokio::sync::Mutex;
 
-use crate::{config::AuthServerCertificates, AuthServerError};
+use crate::{config::AuthServerCertificates, AuthServerError, account::{AccountVerifier, GameExtrasHandler}};
 
-pub struct AuthServer {
+/// Configuration trait: impl this to customize the Auth Server and its protocol for your game/application
+pub trait GameAuthServer: Send + Sync + Sized + 'static {
+    /// The Account Data to expect in protocol handshake messages
+    type AccountData: AccountData<Error = Self::AccountDataError> + serde::de::DeserializeOwned;
+    /// The backend for verifying accounts during protocol handshake
+    type AccountVerifier: AccountVerifier<Self::AccountData>;
+    /// The Game Extras data to expect in protocol handshake messages
+    type GameExtras: GameExtras<Error = Self::GameExtrasError> + serde::de::DeserializeOwned;
+    /// The backend for handling the game extras in handshakes
+    type GameExtrasHandler: GameExtrasHandler<Data = Self::GameExtras>;
+
+    type AccountDataError: AccountDataError + serde::Serialize;
+    type GameExtrasError: GameExtrasError + serde::Serialize;
+}
+
+pub(crate) struct AuthServerCustom<S: GameAuthServer> {
+    pub(crate) account_verifier: Arc<Mutex<S::AccountVerifier>>,
+    pub(crate) game_extras_handler: Arc<Mutex<S::GameExtrasHandler>>,
+}
+
+impl<S: GameAuthServer> Clone for AuthServerCustom<S> {
+    fn clone(&self) -> Self {
+        Self {
+            account_verifier: self.account_verifier.clone(),
+            game_extras_handler: self.game_extras_handler.clone(),
+        }
+    }
+}
+
+pub struct AuthServer<S: GameAuthServer> {
+    server_custom: AuthServerCustom<S>,
     crypto_host: Arc<ServerConfig>,
     crypto_client: Arc<ServerConfig>,
 }
 
-impl AuthServer {
-    pub fn new(certs: AuthServerCertificates) -> Result<Self, AuthServerError> {
+impl<S: GameAuthServer> AuthServer<S> {
+    pub fn new(certs: AuthServerCertificates, account_verifier: S::AccountVerifier, game_extras_handler: S::GameExtrasHandler) -> Result<Self, AuthServerError> {
         // Configure the crypto for listening for hosts
         let mut host_roots = RootCertStore::empty();
         host_roots
@@ -44,6 +76,10 @@ impl AuthServer {
         );
 
         Ok(AuthServer {
+            server_custom: AuthServerCustom {
+                account_verifier: Arc::new(Mutex::new(account_verifier)),
+                game_extras_handler: Arc::new(Mutex::new(game_extras_handler)),
+            },
             crypto_host,
             crypto_client,
         })
@@ -73,7 +109,7 @@ impl AuthServer {
             let server_config = quinn::ServerConfig::with_crypto(self.crypto_client.clone());
             let endpoint =
                 quinn::Endpoint::server(server_config, addr).map_err(AuthServerError::Endpoint)?;
-            tokio::spawn(crate::client::listen_clients(endpoint));
+            tokio::spawn(crate::client::listen_clients(self.server_custom.clone(), endpoint));
         }
         Ok(())
     }

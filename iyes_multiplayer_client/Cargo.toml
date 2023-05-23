@@ -4,10 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rmp-serde = "1.1.1"
+serde = "1.0.163"
 thiserror = "1.0.40"
 webpki = "0.22.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies.iyes_multiplayer_proto_clientauth]
+path = "../proto/clientauth"
+[dependencies.iyes_multiplayer_proto_clienthost]
+path = "../proto/clienthost"
 
 [dependencies.tracing]
 version = "0.1.37"

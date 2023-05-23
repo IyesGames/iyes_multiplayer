@@ -1,3 +1,4 @@
+use client::GameClient;
 use thiserror::Error;
 
 pub mod client;
@@ -6,15 +7,17 @@ pub mod config;
 pub mod auth;
 
 #[derive(Error, Debug)]
-pub enum ClientError {
-    #[error("bad certificate")]
+pub enum ClientError<C: GameClient> {
+    #[error("Bad certificate: {0}")]
     Certificate(webpki::Error),
-    #[error("could not configure client TLS cryptography")]
+    #[error("Could not configure client TLS cryptography: {0}")]
     ClientCrypto(rustls::Error),
-    #[error("could not set up QUIC endpoint")]
+    #[error("Could not set up QUIC endpoint: {0}")]
     Endpoint(std::io::Error),
-    #[error("cannot attempt to connect to server")]
+    #[error("Cannot attempt to connect to server: {0}")]
     Connect(#[from] quinn::ConnectError),
-    #[error("connection failed")]
+    #[error("Connection failed: {0}")]
     Connection(#[from] quinn::ConnectionError),
+    #[error("Auth Server Handshake failed: {0}")]
+    Handshake(#[from] crate::auth::HandshakeError<C>),
 }

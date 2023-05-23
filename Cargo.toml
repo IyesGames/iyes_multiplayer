@@ -5,5 +5,8 @@ members = [
     "iyes_multiplayer_hostsrv",
     "iyes_multiplayer_client",
     "iyesmpcli",
+    "proto/clientauth",
+    "proto/clienthost",
+    "proto/hostauth",
     "examples/*/*",
 ]

@@ -27,6 +27,6 @@ fn main() {
             gen_cert::gen_certs(&config)
         }
     } {
-        eprintln!("Error: {:#}", e);
+        eprintln!("Error: {}", e);
     }
 }
